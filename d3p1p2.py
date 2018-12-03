@@ -1,6 +1,7 @@
 import re
 import types
 import collections
+import itertools
 
 r_re = re.compile('#(?P<id>.+?) @ (?P<x>\d+),(?P<y>\d+): (?P<w>\d+)x(?P<h>\d+)')
 claims = [
@@ -15,3 +16,5 @@ for claim in claims:
             cmap[x, y].add(claim.id)
 
 print(sum(1 for (xy, n) in cmap.items() if len(n) >= 2))
+overlappees = set(itertools.chain(*(n for (xy, n) in cmap.items() if len(n) >= 2)))
+print(set(claim.id for claim in claims) - overlappees)
