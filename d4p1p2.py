@@ -53,15 +53,42 @@ def iterate_minutes(span):
 
 events = read_data()
 sleep_spans = get_sleep_spans(events)
-for gid, sps in sleep_spans.items():
-    for start, end in sps:
-        print(gid, start, end, (end - start).total_seconds() / 60)
-sleepiest_gid, sleepiest_spans = max(sleep_spans.items(), key=lambda pair: total_from_spans(pair[1]))
-minutes = collections.Counter()
-for span in sleepiest_spans:
-    for minute in iterate_minutes(span):
-        minutes[minute.minute] += 1
-        
-sleepiest_minute = minutes.most_common()[0][0]
-print(sleepiest_minute, sleepiest_gid)
-print(sleepiest_minute * int(sleepiest_gid))
+
+#for gid, sps in sleep_spans.items():
+#    for start, end in sps:
+#        print(gid, start, end, (end - start).total_seconds() / 60)
+
+
+def get_minute_stats(spans):
+    minutes = collections.Counter()
+    for span in spans:
+        for minute in iterate_minutes(span):
+            minutes[minute.minute] += 1
+    return minutes
+
+
+def part1():
+    sleepiest_gid, sleepiest_spans = max(sleep_spans.items(), key=lambda pair: total_from_spans(pair[1]))
+    minutes = get_minute_stats(sleepiest_spans)
+    sleepiest_minute = minutes.most_common()[0][0]
+    print('p1', sleepiest_minute, sleepiest_gid, '=', sleepiest_minute * int(sleepiest_gid))
+
+
+def part2():
+    minutes_per_gid = {gid: get_minute_stats(sps) for (gid, sps) in sleep_spans.items()}
+    highest_gid = None
+    highest_minute = 0
+    highest_count = 0
+    for gid, minutes in minutes_per_gid.items():
+        for minute, count in minutes.items():
+            if count > highest_count:
+                highest_count = count
+                highest_minute = minute
+                highest_gid = gid
+    print('p2', highest_minute, highest_gid, '=', highest_minute * int(highest_gid))
+
+
+
+if __name__ == "__main__":
+    part1()
+    part2()
