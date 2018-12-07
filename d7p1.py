@@ -1,26 +1,32 @@
 import re
 import collections
-from toposort import toposort
+import pprint
+from paths import paths
 
 step_re = re.compile(r'Step (.+?) must be finished before step (.+?) can begin.')
 
 graph = collections.defaultdict(set)
-with open('example-day7.txt') as infp:
+reverse_graph = collections.defaultdict(set)
+with open('input-day7.txt') as infp:
     for m in step_re.finditer(infp.read()):
         a, b = m.groups()
-        graph[b].add(a)
-        graph[a]  # not actually a no-op
+        graph[a].add(b)
+        graph[b]  # not actually a no-op
+        reverse_graph[b].add(a)
+        reverse_graph[a]
+
+start_node = [key for (key, deps) in reverse_graph.items() if not deps][0]
+end_node = [key for (key, deps) in graph.items() if not deps][0]
 
 keys = set(graph)
 
-# Gather a total list of dependencies via toposort:
-full_deps = {key: [] for key in keys}
-seen = set()
-for node_list in toposort(graph):
-    print(node_list)
-    seen.update(node_list)
-    for key in keys - seen:
-        full_deps[key].extend(node_list)
+pprint.pprint(graph)
+
+full_deps = collections.defaultdict(set)
+
+for path in paths(reverse_graph, end_node):
+    for i in range(len(path)):
+        full_deps[path[i]].update(set(path[i+1:]))
 
 print(full_deps)
 seen = set()
