@@ -40,14 +40,15 @@ def draw_frame(frame):
         print(''.join(r))
 
 
-best = (1 << 63, None)
+best = (1 << 63, None, None)
 
 for t in count(0):
     _, (minx, miny), (maxx, maxy) = frame = render_frame(t)
     size = (maxx - minx) * (maxy - miny)
     if size < best[0]:
-        best = (size, frame)
+        best = (size, t, frame)
     else:  # Okay, we're growing in entropy again
         break
 
-draw_frame(best[1])
+print(best[:2])
+draw_frame(best[2])
