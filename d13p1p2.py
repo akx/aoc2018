@@ -1,6 +1,6 @@
 import collections
 from collections import namedtuple
-from itertools import count
+from itertools import count, chain
 
 Cart = namedtuple('Cart', 'id x y dir xcount')
 
@@ -78,15 +78,41 @@ def draw_world(world, carts, extents):
         print('{:03d} {}'.format(y, ''.join(row)))
 
 
+# wrong:
+# 112,79
+# 112,78
+
+
 if __name__ == '__main__':
     world, carts, extents = read_data('input-day13.txt')
+    part = 2
     for step in count(0):
-        print(step)
-        draw_world(world, carts, extents)
+        #print(step, len(carts))
+        #draw_world(world, carts, extents)
+
+        if part == 2 and len(carts) <= 1:
+            print('out of carts')
+            print(carts)
+            print('answer =', '%d,%d' % (carts[0].x, carts[0].y))
+            raise NotImplementedError('...')
+
         carts = run_step(world, carts)
-        cart_coords = collections.Counter((c.x, c.y) for c in carts)
-        crashes = [(xy, v) for (xy, v) in cart_coords.items() if v > 1]
+
+        carts_by_coords = collections.defaultdict(list)
+        for cart in carts:
+            carts_by_coords[(cart.x, cart.y)].append(cart)
+        crashes = {
+            xy: carts_in_coord
+            for (xy, carts_in_coord)
+            in carts_by_coords.items()
+            if len(carts_in_coord) > 1
+        }
         if crashes:
             print('crash at step', step)
             print(crashes)
-            raise NotImplementedError('...')
+            if part == 1:
+                raise NotImplementedError('part 1 mode, stopping here')
+            else:
+                crashing_ids = {c.id for c in chain(*crashes.values())}
+                print('removing carts', crashing_ids)
+                carts = [cart for cart in carts if cart.id not in crashing_ids]
