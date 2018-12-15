@@ -42,8 +42,13 @@ def read_data(filename):
 
 def run_step(world, carts):
     new_carts = []
+    crashes = set()
+
     for cart in sorted(carts, key=lambda cart: (cart.y, cart.x)):
         cid, x, y, dir, xcount = cart
+        if any((c.x, c.y) == (x, y) for c in new_carts):
+            crashes.add(cid)
+            continue
         dx, dy = deltas[dir]
         x += dx
         y += dy
@@ -60,7 +65,7 @@ def run_step(world, carts):
         else:
             next_dir = dir
         new_carts.append(cart._replace(x=x, y=y, dir=next_dir, xcount=xcount))
-    return new_carts
+    return (new_carts, crashes)
 
 
 def draw_world(world, carts, extents):
@@ -78,41 +83,45 @@ def draw_world(world, carts, extents):
         print('{:03d} {}'.format(y, ''.join(row)))
 
 
+def get_coords(carts):
+    carts_by_coords = collections.defaultdict(list)
+    for cart in carts:
+        carts_by_coords[(cart.x, cart.y)].append(cart)
+    return carts_by_coords
+
 # wrong:
 # 112,79
 # 112,78
 
-
-if __name__ == '__main__':
+def main():
     world, carts, extents = read_data('input-day13.txt')
     part = 2
     for step in count(0):
-        #print(step, len(carts))
-        #draw_world(world, carts, extents)
+        # print(step, len(carts))
+        # draw_world(world, carts, extents)
 
         if part == 2 and len(carts) <= 1:
             print('out of carts')
             print(carts)
             print('answer =', '%d,%d' % (carts[0].x, carts[0].y))
-            raise NotImplementedError('...')
+            break
 
-        carts = run_step(world, carts)
+        carts, step_crashes = run_step(world, carts)
 
-        carts_by_coords = collections.defaultdict(list)
-        for cart in carts:
-            carts_by_coords[(cart.x, cart.y)].append(cart)
-        crashes = {
-            xy: carts_in_coord
-            for (xy, carts_in_coord)
-            in carts_by_coords.items()
-            if len(carts_in_coord) > 1
-        }
-        if crashes:
-            print('crash at step', step)
-            print(crashes)
+        carts_by_coords = get_coords(carts)
+        crashing_ids = set(step_crashes)
+        for xy, carts_in_coord in carts_by_coords.items():
+            if len(carts_in_coord) > 1:
+                crashing_ids.update({c.id for c in carts_in_coord})
+        if crashing_ids:
+            print('crash at step', step, crashing_ids)
             if part == 1:
                 raise NotImplementedError('part 1 mode, stopping here')
             else:
-                crashing_ids = {c.id for c in chain(*crashes.values())}
                 print('removing carts', crashing_ids)
                 carts = [cart for cart in carts if cart.id not in crashing_ids]
+
+
+
+if __name__ == '__main__':
+    main()
