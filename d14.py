@@ -38,9 +38,6 @@ def nseq(c):
     return ''.join(str(n) for n in c)
 
 
-# wrong:
-# 8012201244
-
 def selftest():
     assert nseq(islice(choc('37'), 9, 19)) == '5158916779'
     assert nseq(islice(choc('37'), 5, 15)) == '0124515891'
@@ -52,6 +49,20 @@ def part1(input):
     print(nseq(islice(choc('37'), input, input + 10)))
 
 
+def part2(input):
+    input = seqn(str(input))
+    buf = []
+    gen = choc('37')
+    while True:
+        buf.append(next(gen))
+        if buf[-6:] == input:
+            print(len(buf) - 6)
+            break
+
+
 if __name__ == '__main__':
     selftest()
+    print('part 1')
     part1(170641)
+    print('part 2')
+    part2(170641)
